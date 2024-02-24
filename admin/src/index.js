@@ -130,6 +130,7 @@ app.listen(config.port, (err) => {
 
 module.exports = {
   handleAdminReport,
+  getCompanies,
   getInvestments,
   getCsvData,
   generateCsv,
