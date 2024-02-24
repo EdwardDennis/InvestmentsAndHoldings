@@ -38,29 +38,24 @@ async function handleAdminReport(req, res) {
   }
 }
 
-const getInvestments = () =>
+const fetchData = (url) =>
   new Promise((resolve, reject) => {
-    request.get(`${config.investmentsServiceUrl}/investments`, (e, investments) => {
-      if (e) {
-        console.error(e);
-        reject(e);
+    request.get(url, (err, data) => {
+      if (err) {
+        console.error(err);
+        reject(err);
       } else {
-        resolve(investments);
+        resolve(data);
       }
     });
   });
 
-  const getCompanies = () =>
-    new Promise((resolve, reject) => {
-    request.get(`${config.financialCompaniesServiceUrl}/companies`, (e, companies) => {
-      if (e) {
-        console.error(e);
-        reject(e);
-      } else {
-        resolve(companies);
-      }
-    });
-  });
+
+const getInvestments = () =>
+  fetchData(`${config.investmentsServiceUrl}/investments`);
+
+const getCompanies = () =>
+  fetchData(`${config.financialCompaniesServiceUrl}/companies`);
 
 const getCsvData = (investmentsServiceResponse, companiesResponse) => {
   try {
