@@ -1,81 +1,54 @@
-# Moneyhub Tech Test - Investments and Holdings
+# Investment Holdings CSV Report Generator
 
-At Moneyhub we use microservices to partition and separate the concerns of the codebase. In this exercise we have given you an example `admin` service and some accompanying services to work with. In this case the admin service backs a front end admin tool allowing non-technical staff to interact with data.
+This codebase serves as an implementation of an admin service in an investment management system. As an admin, the system enables you to generate a CSV report, detailing values of all user investment holdings.
 
-A request for a new admin feature has been received
+## Background
 
-## Requirements
+The application achieves this functionality by interfacing with endpoints provided by both the Investments and Financial Companies services.
 
-- As an admin, I want to be able to generate a CSV report showing the values of all user investment holdings
-    - Any new routes should be added to the **admin** service
-    - The csv report should be sent to the `/export` route of the **investments** service
-    - The investments `/export` route expects the following:
-        - content-type as `application/json`
-        - JSON object containing the report as csv string, i.e, `{csv: '|User|First Name|...'}`
-    - The csv should contain a row for each holding matching the following headers
-    |User|First Name|Last Name|Date|Holding|Value|
-    - The **Holding** property should be the name of the holding account given by the **financial-companies** service
-    - The **Value** property can be calculated by `investmentTotal * investmentPercentage`
-    - The new route in the admin service handling the generation of the csv report should return the csv as text with content type `text/csv`
-- Ensure use of up to date packages and libraries (the service is known to use deprecated packages but there is no expectation to replace them)
-- Make effective use of git
+- **Investments Service:** This service provides important information about each individual user investment and the overall investment data. It includes data points such as the total amount of a user's investment and various investment percentages in different holding accounts.
 
-We prefer:
-- Functional code
-- Ramda.js (this is not a requirement but feel free to investigate)
-- Unit testing
+- **Financial Companies Service:** This service facilitates access to data about different financial companies. Details include the name of the holding accounts where a user could place their investments.
 
-### Notes
-All of you work should take place inside the `admin` microservice
+Upon fetching data from these two services, the admin service processes it to generate a comprehensive investment report. The generated report contains details of each holding under the following headers: `User`, `First Name`, `Last Name`, `Date`, `Holding`, and `Value`.
 
-For the purposes of this task we would assume there are sufficient security middleware, permissions access and PII safe protocols, you do not need to add additional security measures as part of this exercise.
+Once generated, the report is forwarded to the `/export` endpoint of the Investments service in the `Content-Type` of `application/json`, ensuring seamless integration and data exchange between different microservices in the system.
 
-You are free to use any packages that would help with this task
+## New Route
 
-We're interested in how you break down the work and build your solution in a clean, reusable and testable manner rather than seeing a perfect example, try to only spend around *1-2 hours* working on it
+A new GET route has been added as `/admin/report`. This route triggers the generation of the financial CSV report.
 
-## Deliverables
-**Please make sure to update the readme with**:
+## How might you make this service more secure?
 
-- Your new routes
-- How to run any additional scripts or tests you may have added
-- Relating to the task please add answers to the following questions;
-    1. How might you make this service more secure?
-    2. How would you make this solution scale to millions of records?
-    3. What else would you have liked to improve given more time?
+There are several steps that I would take in order to enhance service security:
 
+- **Secret Management:** I would move sensitive data like service URLs out of the codebase and into secure environment variables.
+- **Implement Content Security Policy (CSP):** To safeguard against Cross-Site Scripting (XSS) attacks, I'd employ a Content Security Policy.
+- **Rate Limit Requests:** To bolster resilience against brute-force or DoS attacks, I'd limit the number of requests a client can make within a given timeframe.
+- **Leverage Security Headers:** I'd enhance application security by adopting HTTP headers like HTTP Strict Transport Security and X-Frame-Options.
+- **Use JWT Tokens:** JWT Tokens could be used for Authentication and Authorisation to allow for secure information exchange.
 
-On completion email a link to your repository to your contact at Moneyhub and ensure it is publicly accessible.
+## How would you make this solution scale to millions of records?
 
-## Getting Started
+To scale this solution to support millions of records:
 
-Please clone this service and push it to your own github (or other) public repository
+- **Optimise Data Fetching:** I'd avoid fetching large amounts of data from investment and company services all in one go. Fetching large data sets could exhaust database or network resources. To handle data fetching in manageable chunks, I'd consider implementing pagination or using streaming.
+- **Enhance Data Processing:** CPU-intensive tasks like CSV generation could potentially become a bottleneck when working with a large number of records. To mitigate this, I'd employ stream-based processing which would enable processing of records as they are received, rather than all at once.
+- **Implement Caching:** If the same reports are generated regularly, then caching the results and employing an appropriate cache invalidation strategy could vastly improve performance by avoiding the redundant computation of the same result.
+- **Employ Load Balancing:** If the server is under significant strain during periods of high demand, I'd consider employing load balancing to evenly distribute incoming network traffic across several servers.
+- **Make Asynchronous Requests:** If several different requests are being made and responses are being combined (for example, fetching data for each holding individually), then I'd consider making these requests asynchronously, allowing them to run in parallel and optimize data fetching.
+- **Optimise Database:** Indexing could expedite data retrieval when dealing with a large database. Regular maintenance tasks, such as purging unnecessary data, could also enhance database operations.
+- **Establish Scalable Infrastructure:** If the service is housed in a container (such as Docker), it could be easily scaled up by increasing the number of containers during periods of high demand and reducing the number of containers when demand recedes.
 
-To develop against all the services each one will need to be started in each service run
+## What else would you have liked to improve given more time?
 
-```bash
-npm start
-or
-npm run develop
-```
+Given more time, several other improvements could be made:
 
-The develop command will run nodemon allowing you to make changes without restarting
-
-The services will try to use ports 8081, 8082 and 8083
-
-Use Postman or any API tool of you choice to trigger your endpoints (this is how we will test your new route).
-
-### Existing routes
-We have provided a series of routes
-
-Investments - localhost:8081
-- `/investments` get all investments
-- `/investments/:id` get an investment record by id
-- `/investments/export` expects a csv formatted text input as the body
-
-Financial Companies - localhost:8082
-- `/companies` get all companies details
-- `/companies/:id` get company by id
-
-Admin - localhost:8083
-- `/investments/:id` get an investment record by id
+- **Code Refactoring:** I would refactor parts of the codebase for better organization, readability, and maintainability - for instance, moving the CSV logic, currently embedded in `index.js`, into a separate, dedicated module.
+- **Performance Optimization:** With potentially large amounts of data and network latency, I'd explore adding caching layers for frequently fetched data and utilizing batch operations or stream-based processing for handling sizable CSV data.
+- **Enhanced Error Handling and Logging:** Error identification could be made more accurate by implementing a more robust error-handling mechanism, potentially involving the creation of custom error classes. Additionally, enhancing the logging system for better traceability and activity records, and deploying varying logging levels as needed, could be beneficial.
+- **Containerisation:** The process of deployment, distribution, and scaling could be simplified by containerising the service using Docker.
+- **API Documentation:** Comprehensive documentation for our API endpoints could be produced to aid other developers in understanding how to interact with our service efficiently.
+- **Monitoring and Metrics:** I'd consider incorporating metrics to track elements, such as request duration and request count over specific periods, to help identify issues early on and provide valuable insights about the service.
+- **Testing Enhancements:** I'd aim to increase test coverage to over 90%, for more comprehensive coverage. As part of this effort, I'd consider diversifying my test types - perhaps, including integration or end-to-end tests - and taking into account edge cases and failure scenarios in my testing approach.
+- **Continuous Integration and Continuous Deployment (CI/CD):** I'd focus on establishing a CI/CD pipeline for automated testing and deployment. This would ensure that the codebase remains in a continuously releasable state, thus streamlining the delivery process.
